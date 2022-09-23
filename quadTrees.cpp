@@ -1,5 +1,6 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
+#include <memory>
 #include <vector>
 
 using namespace std;
@@ -7,11 +8,15 @@ using namespace std;
 
 struct Ball
 {
-	int x, y, w, h;
+	int x;
+	int y;
+	int r;
 
-	Ball()
+	Ball(int x_, int y_, int z_)
 	{
-		
+		x = x_;
+		y = y_;
+		r = z_;
 	}
 };
 
@@ -19,80 +24,67 @@ struct Ball
 class QuadTree
 {
 public:
-	static const int MAX_DEPTH = 5;
+	
+	const static int MAX_DEPTH = 5;
 
-	int x, y; // middle point of quadtree
-	int w, h; // half width-height of the boundaries
+	int cx;
+	int cy;
+	int w;
+	int h;
 	int depth;
-	QuadTree** leafs;
-	vector<Ball*> balls;
 
-	QuadTree(int x, int y, int w, int h, int depth)
+	unique_ptr<QuadTree> ul_leaf, ur_leaf, lr_leaf, ll_leaf;
+	vector<unique_ptr<Ball>> balls;
+
+	QuadTree(int cx_, int cy_, int w_, int h_, int depth_)
 	{
-		this->x = x;
-		this->y = y;
-		this->w = w;
-		this->h = h;
-		this->depth = depth;
+		cx = cx_;
+		cy = cy_;
+		w = w_;
+		h = h_;
+		depth = depth_;
 	}
 
-	void addBall(Ball* ball)
+	void insert_ball(unique_ptr<Ball> ball)
 	{
-		if (depth < QuadTree::MAX_DEPTH)
+		
+		if (ball->x < cx && ball->y < cy) // upper left
 		{
-			if (!leafs) { leafs = new QuadTree * [4]; }
+			if (!ul_leaf.get()) // it is null
+			{
 
-			int idx = getReigonIdx(ball);
+			}
+			else
+			{
 
-			if (!leafs[idx]) { leafs[idx] = createTree(idx); }
-
-			leafs[idx]->addBall(ball);
+			}
 		}
-		else
-			balls.push_back(ball);
-	}
-
-	QuadTree* createTree(int idx)
-	{
-		int w_ = w / 2;
-		int h_ = h / 2;
-
-		switch (idx)
+		else if (ball->x > cx && ball->y < cy) // upper right
 		{
-		case 0:
-			return new QuadTree(x-w_, y-h_, w_, h_, depth + 1);
-		case 1:
-			return new QuadTree(x + w_, y - h_, w_, h_, depth + 1);
-		case 2:
-			return new QuadTree(x - w_, y + h_, w_, h_, depth + 1);
-		case 3:
-			return new QuadTree(x + w_, y+- h_, w_, h_, depth + 1);
+
 		}
+		else if (ball->x > cx && ball->y > cy) // lower right
+		{
+
+		}
+		else // lower left
+		{
+
+		}
+
 	}
 
-	int getReigonIdx(Ball* ball)
-	{
-		int id = 0;
-
-		if (ball->x > x) { id++; }
-		if (ball->y > y) { id+=2;}
-
-		return id;
-	}
 
 };
 
 class Example : public olc::PixelGameEngine
 {
 public:
-	QuadTree* tree;
-	vector<Ball> balls;
+
 
 	Example()
 	{
 		sAppName = "QuadTrees";
-
-		generateBalls(10);
 	}
 
 	bool OnUserCreate() override
@@ -104,26 +96,10 @@ public:
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		Clear(olc::DARK_BLUE);
-		int w = ScreenWidth() / 2;
-		int h = ScreenHeight() / 2;
-		tree = new QuadTree(w, h, w, h, 0);
-
-
-		for (Ball b : balls)
-			tree->addBall(&b);
-
-		delete tree;
 
 		return true;
 	}
 
-	void generateBalls(int n)
-	{
-		for (int i = 0; i < n; i++)
-		{
-			balls.push_back(Ball());
-		}
-	}
 
 };
 
