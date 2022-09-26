@@ -10,7 +10,8 @@ using namespace olc;
 
 struct Ball
 {
-	static const int r = 3;
+	const int r = 3;
+	const float s = 15.0f;
 
 	float x;
 	float y;
@@ -55,7 +56,7 @@ public:
 
 	void insert_ball(shared_ptr<Ball> ball)
 	{
-		if (depth >= MAX_DEPTH)
+		if (depth > MAX_DEPTH)
 		{
 			balls.push_back(ball);
 			return;
@@ -65,7 +66,11 @@ public:
 		{
 			if (!ul_tree.get()) // it is null
 			{
-				ul_tree = unique_ptr<QuadTree>(new QuadTree(cx / 2, cy / 2, w / 2, h / 2, depth + 1));
+				int w_ = w / 2;
+				int h_ = h / 2;
+				int cx_ = cx - (w_ / 2);
+				int cy_ = cy - (h_ / 2);
+				ul_tree = unique_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
 			}
 		
 			ul_tree->insert_ball(ball);
@@ -74,7 +79,11 @@ public:
 		{
 			if (!ur_tree.get()) // it is null
 			{
-				ur_tree = unique_ptr<QuadTree>(new QuadTree(cx * 1.5, cy / 2, w / 2, h / 2, depth + 1));
+				int w_ = w / 2;
+				int h_ = h / 2;
+				int cx_ = cx + (w_ / 2);
+				int cy_ = cy - (h_ / 2);
+				ur_tree = unique_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
 			}
 		
 			ur_tree->insert_ball(ball);
@@ -83,7 +92,11 @@ public:
 		{
 			if (!lr_tree.get()) // it is null
 			{
-				lr_tree = unique_ptr<QuadTree>(new QuadTree(cx * 1.5, cy * 1.5, w / 2, h / 2, depth + 1));
+				int w_ = w / 2;
+				int h_ = h / 2;
+				int cx_ = cx + (w_ / 2);
+				int cy_ = cy + (h_ / 2);
+				lr_tree = unique_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
 			}
 		
 			lr_tree->insert_ball(ball);
@@ -92,13 +105,18 @@ public:
 		{
 			if (!ll_tree.get()) // it is null
 			{
-				ll_tree = unique_ptr<QuadTree>(new QuadTree(cx / 2, cy  * 1.5, w / 2, h / 2, depth + 1));
+				int w_ = w / 2;
+				int h_ = h / 2;
+				int cx_ = cx - (w_ / 2);
+				int cy_ = cy + (h_ / 2);
+				ll_tree = unique_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
 			}
 		
 			ll_tree->insert_ball(ball);
 		}
 	
 	}
+
 };
 
 
@@ -116,9 +134,7 @@ public:
 
 	bool OnUserCreate() override
 	{
-		const int N_BALLS = 1;
-
-		t = unique_ptr<QuadTree>(new QuadTree(128, 120, 256, 240, 1));
+		const int N_BALLS = 50;
 
 		for (int i = 0; i < N_BALLS; i++)
 		{
@@ -126,7 +142,6 @@ public:
 			float y = ((float)rand() / RAND_MAX) * ScreenHeight();
 			auto b = shared_ptr<Ball>(new Ball(x, y));
 			balls.push_back(b);
-			t->insert_ball(b);
 		}
 
 		return true;
@@ -136,17 +151,16 @@ public:
 	{
 		Clear(olc::DARK_BLUE);
 
-		
+		t = unique_ptr<QuadTree>(new QuadTree(ScreenWidth() / 2, ScreenHeight() / 2, ScreenWidth(), ScreenHeight(), 0));
 
 		for (auto const &b : balls)
 		{
-			float s = 0;
-			b->x += b->vx * s * fElapsedTime;
-			b->y += b->vy * s * fElapsedTime;
+			b->x += b->vx * b->s * fElapsedTime;
+			b->y += b->vy * b->s * fElapsedTime;
 			FillCircle(b->x, b->y, b->r, olc::WHITE);
+			t->insert_ball(b);
 		}
 
-		//cout << b.x << " " << b.y << "\n";
 		DrawQuadTree(t);
 		return true;
 	}
@@ -164,6 +178,17 @@ public:
 		DrawQuadTree(t->lr_tree);
 	}
 
+	void UpdateCollisionsBF()
+	{
+		for (auto const& b : balls)
+		{
+			for (auto const& b_ : balls)
+			{
+
+			}
+		}
+	}
+
 };
 
 
@@ -172,7 +197,7 @@ int main()
 	srand((unsigned)time(NULL));
 
 	Example demo;
-	if (demo.Construct(256, 240, 4, 4))
+	if (demo.Construct(1024, 1024, 1, 1))
 		demo.Start();
 
 	return 0;
