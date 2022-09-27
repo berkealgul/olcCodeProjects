@@ -10,8 +10,8 @@ using namespace olc;
 
 struct Ball
 {
-	const int r = 3;
-	const float s = 15.0f;
+	const int r = 4;
+	const float s = 25.0f;
 
 	float x;
 	float y;
@@ -24,8 +24,14 @@ struct Ball
 		y = y_;
 		vx = (float)rand() / RAND_MAX;
 		vy = (float)rand() / RAND_MAX;
-		//vx = (vx - 0.5) * 2;
-		//vy = (vx - 0.5) * 2;
+		vx = (vx - 0.5) * 2;
+		vy = (vx - 0.5) * 2;
+	}
+
+	bool CollidesWith(const shared_ptr<Ball>& b)
+	{
+		float d = powf((x - b->x), 2) + powf((y - b->y), 2);
+		return d <= powf(2 * r, 2);
 	}
 };
 
@@ -134,7 +140,7 @@ public:
 
 	bool OnUserCreate() override
 	{
-		const int N_BALLS = 50;
+		const int N_BALLS = 100;
 
 		for (int i = 0; i < N_BALLS; i++)
 		{
@@ -157,11 +163,26 @@ public:
 		{
 			b->x += b->vx * b->s * fElapsedTime;
 			b->y += b->vy * b->s * fElapsedTime;
+			
+			if (b->x < 0 || b->x > ScreenWidth())
+			{
+				b->vx *= -1;
+			}
+
+			if (b->y < 0 || b->y > ScreenHeight())
+			{
+				b->vy *= -1;
+			}
+
 			FillCircle(b->x, b->y, b->r, olc::WHITE);
 			t->insert_ball(b);
 		}
 
 		DrawQuadTree(t);
+
+		int checks = UpdateCollisionsBF();
+		//cout << checks << endl;
+
 		return true;
 	}
 
@@ -178,15 +199,27 @@ public:
 		DrawQuadTree(t->lr_tree);
 	}
 
-	void UpdateCollisionsBF()
+	int UpdateCollisionsBF()
 	{
+		int checks = 0;
+
 		for (auto const& b : balls)
 		{
 			for (auto const& b_ : balls)
 			{
+				if (b == b_) { continue; }
 
+				checks++;
+
+				if (!b->CollidesWith(b_)) { continue; }
+				
+				b->vx *= -1;
+				b->vy *= -1;
+				break;
 			}
 		}
+
+		return checks;
 	}
 
 };
