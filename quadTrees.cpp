@@ -48,7 +48,7 @@ public:
 	int h;
 	int depth;
 
-	unique_ptr<QuadTree> ul_tree, ur_tree, lr_tree, ll_tree;
+	shared_ptr<QuadTree> ul_tree, ur_tree, lr_tree, ll_tree;
 	vector<shared_ptr<Ball>> balls;
 
 	QuadTree(int cx_, int cy_, int w_, int h_, int depth_)
@@ -76,7 +76,7 @@ public:
 				int h_ = h / 2;
 				int cx_ = cx - (w_ / 2);
 				int cy_ = cy - (h_ / 2);
-				ul_tree = unique_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
+				ul_tree = shared_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
 			}
 		
 			ul_tree->insert_ball(ball);
@@ -89,7 +89,7 @@ public:
 				int h_ = h / 2;
 				int cx_ = cx + (w_ / 2);
 				int cy_ = cy - (h_ / 2);
-				ur_tree = unique_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
+				ur_tree = shared_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
 			}
 		
 			ur_tree->insert_ball(ball);
@@ -102,7 +102,7 @@ public:
 				int h_ = h / 2;
 				int cx_ = cx + (w_ / 2);
 				int cy_ = cy + (h_ / 2);
-				lr_tree = unique_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
+				lr_tree = shared_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
 			}
 		
 			lr_tree->insert_ball(ball);
@@ -115,12 +115,67 @@ public:
 				int h_ = h / 2;
 				int cx_ = cx - (w_ / 2);
 				int cy_ = cy + (h_ / 2);
-				ll_tree = unique_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
+				ll_tree = shared_ptr<QuadTree>(new QuadTree(cx_, cy_, w_, h_, depth + 1));
 			}
 		
 			ll_tree->insert_ball(ball);
 		}
 	
+	}
+
+	static vector<shared_ptr<Ball>> GetBallsToCheck(shared_ptr<QuadTree> head_tree, shared_ptr<Ball> const& ball)
+	{
+		shared_ptr<QuadTree> host_tree = FindTreeOfBall(head_tree, ball);
+
+		vector<shared_ptr<Ball>> target_balls = host_tree->balls;
+
+		if (host_tree->ul_tree.get())
+		{
+			target_balls.insert(target_balls.end(), host_tree->ul_tree->balls.begin(), host_tree->ul_tree->balls.end());
+		}
+		if (host_tree->ur_tree.get())
+		{
+			target_balls.insert(target_balls.end(), host_tree->ur_tree->balls.begin(), host_tree->ur_tree->balls.end());
+		}
+		if (host_tree->ll_tree.get())
+		{
+			target_balls.insert(target_balls.end(), host_tree->ll_tree->balls.begin(), host_tree->ll_tree->balls.end());
+		}
+		if (host_tree->lr_tree.get())
+		{
+			target_balls.insert(target_balls.end(), host_tree->lr_tree->balls.begin(), host_tree->lr_tree->balls.end());
+		}
+
+		return target_balls;
+	}
+
+	static shared_ptr<QuadTree> FindTreeOfBall(shared_ptr<QuadTree> tree,  shared_ptr<Ball> const& ball)
+	{
+		if (!tree.get()) { return NULL; }
+
+		for (auto b : tree->balls)
+		{
+			if (b == ball) { return tree; }
+		}
+
+		if (ball->x < tree->cx && ball->y < tree->cy) // upper left
+		{
+			return FindTreeOfBall(tree->ul_tree, ball);
+		}
+		else if (ball->x > tree->cx && ball->y < tree->cy) // upper right
+		{
+			return FindTreeOfBall(tree->ur_tree, ball);
+		}
+		else if (ball->x > tree->cx && ball->y > tree->cy) // lower right
+		{
+			return FindTreeOfBall(tree->lr_tree, ball);
+		}
+		else // lower left
+		{
+			return FindTreeOfBall(tree->ll_tree, ball);
+		}
+
+		return NULL;
 	}
 
 };
@@ -136,7 +191,7 @@ public:
 	}
 
 	vector<shared_ptr<Ball>> balls;
-	unique_ptr<QuadTree> t;
+	shared_ptr<QuadTree> t;
 
 	bool OnUserCreate() override
 	{
@@ -157,7 +212,7 @@ public:
 	{
 		Clear(olc::DARK_BLUE);
 
-		t = unique_ptr<QuadTree>(new QuadTree(ScreenWidth() / 2, ScreenHeight() / 2, ScreenWidth(), ScreenHeight(), 0));
+		t = shared_ptr<QuadTree>(new QuadTree(ScreenWidth() / 2, ScreenHeight() / 2, ScreenWidth(), ScreenHeight(), 0));
 
 		for (auto const &b : balls)
 		{
@@ -180,13 +235,13 @@ public:
 
 		DrawQuadTree(t);
 
-		int checks = UpdateCollisionsBF();
-		//cout << checks << endl;
+		//int checks = UpdateCollisionsBF();
+		int checks = UpdateCollisions();
 
 		return true;
 	}
 
-	void DrawQuadTree(unique_ptr<QuadTree> &t)
+	void DrawQuadTree(shared_ptr<QuadTree> &t)
 	{
 		if (!t.get()) { return; }
 
@@ -208,11 +263,30 @@ public:
 			for (auto const& b_ : balls)
 			{
 				if (b == b_) { continue; }
-
 				checks++;
-
 				if (!b->CollidesWith(b_)) { continue; }
-				
+				b->vx *= -1;
+				b->vy *= -1;
+				break;
+			}
+		}
+
+		return checks;
+	}
+
+	int UpdateCollisions()
+	{
+		int checks = 0;
+
+		for (auto b : balls)
+		{
+			auto balls_to_check = QuadTree::GetBallsToCheck(t, b);
+
+			for (auto b_ : balls_to_check)
+			{
+				if (b == b_) { continue; }
+				checks++;
+				if (!b->CollidesWith(b_)) { continue; }
 				b->vx *= -1;
 				b->vy *= -1;
 				break;
