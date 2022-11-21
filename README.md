@@ -6,3 +6,6 @@ Here lies the all stuff i made using olcPixelGameEngine
 
 - **quadTrees.cpp** quadtree system for optimizing collision detection system for high amount of particles
 <img src="/images/qt.png" alt="olcft" width="500">
+
+- **fluidSim.cpp** Dummy fluid simulation
+<img src="/images/qt.png" alt="olcft" width="500">
