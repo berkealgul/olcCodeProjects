@@ -8,4 +8,4 @@ Here lies the all stuff i made using olcPixelGameEngine
 <img src="/images/qt.png" alt="olcft" width="500">
 
 - **fluidSim.cpp** Dummy fluid simulation
-<img src="/images/qt.png" alt="olcft" width="500">
+<img src="/images/fs.png" alt="olcft" width="500">
