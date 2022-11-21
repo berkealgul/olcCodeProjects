@@ -220,7 +220,7 @@ public:
 };
 
 
-class Example : public olc::PixelGameEngine
+class Sketch : public olc::PixelGameEngine
 {
 public:
 
@@ -228,7 +228,7 @@ public:
 
 	FluidGrid *fluid;
 
-	Example()
+	Sketch()
 	{
 		sAppName = "Dummy Fluid Simulation";
 	}
@@ -274,9 +274,9 @@ public:
 
 int main()
 {
-	Example demo;
-	if (demo.Construct(150, 150, 2, 2))
-		demo.Start();
+	Sketch sketch;
+	if (sketch.Construct(150, 150, 2, 2))
+		sketch.Start();
 
 	return 0;
 }
