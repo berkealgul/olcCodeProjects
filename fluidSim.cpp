@@ -256,7 +256,7 @@ public:
 		angle += (3.14 / 3) * fluid->dt;
 		fluid->addVelocity(cx, cy, cos(angle)*0.2, cos(angle)*0.2);
 		
-		Clear(olc::Black);
+		Clear(olc::BLACK);
 		for (int x = 0; x < ScreenWidth(); x++)
 			for (int y = 0; y < ScreenHeight(); y++)
 			{
