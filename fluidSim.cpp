@@ -230,7 +230,7 @@ public:
 
 	Example()
 	{
-		sAppName = "QuadTrees";
+		sAppName = "Dummy Fluid Simulation";
 	}
 
 	bool OnUserCreate() override
