@@ -1,6 +1,10 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 #include <vector>
+#include <random>
+#include <stdio.h>      
+#include <stdlib.h>     
+#include <time.h>       
 
 using namespace std;
 
@@ -21,19 +25,21 @@ public:
 	static const int RIGHT = 3;
 	static const int DOWN = 4;
 	static const int UNVISITED = 0;
+	static const int ORIGIN = -1;
 
 	struct Cell
 	{
-		int parentDir = UNVISITED; 
+		int parentDir = UNVISITED;
 		vector<int> neighborDirs;
 	};
 
 	const int ox = 0;
 	const int oy = 0;
-	int w = 10;
-	int h = 10;
+	int w = 50;
+	int h = 50;
 	int x;
 	int y;
+	int iters = 0;
 
 
 	vector<Cell> grid;
@@ -43,93 +49,130 @@ public:
 	{
 		x = ox;
 		y = oy;
-		grid = vector<Cell>(w*h);
+		grid = vector<Cell>(w * h);
+		cell(ox, oy).parentDir = ORIGIN;
 
 		return true;
 	}
-	 
+
 	bool OnUserUpdate(float dt) override
 	{
-		Cell cell = grid[IX(x, y)];
-
 		//get spaces to walk
 		if (x > 0)
 		{
-			if (grid[IX(x - 1, y)].parentDir == UNVISITED)
+			if (cell(x - 1, y).parentDir == UNVISITED)
 			{
-				cell.neighborDirs.push_back(LEFT);
+				cell(x, y).neighborDirs.push_back(LEFT);
 			}
 		}
-		if (x < w-1)
+		if (x < w - 1)
 		{
-			if (grid[IX(x + 1, y)].parentDir == UNVISITED)
+			if (cell(x + 1, y).parentDir == UNVISITED)
 			{
-				cell.neighborDirs.push_back(RIGHT);
-			}
-		}
-		if (y > 0)
-		{
-			if (grid[IX(x, y - 1)].parentDir == UNVISITED)
-			{
-				cell.neighborDirs.push_back(UP);
+				cell(x, y).neighborDirs.push_back(RIGHT);
 			}
 		}
 		if (y > 0)
 		{
-			if (grid[IX(x, y + 1)].parentDir == UNVISITED)
+			if (cell(x, y - 1).parentDir == UNVISITED)
 			{
-				cell.neighborDirs.push_back(DOWN);
+				cell(x, y).neighborDirs.push_back(UP);
+			}
+		}
+		if (y < h - 1)
+		{
+			if (cell(x, y + 1).parentDir == UNVISITED)
+			{
+				cell(x, y).neighborDirs.push_back(DOWN);
 			}
 		}
 
+		
+
+		if (cell(x, y).neighborDirs.size() != 0)
+		{
+			srand(time(NULL));
+			int pos = rand() % cell(x, y).neighborDirs.size();
+			int dir = cell(x, y).neighborDirs[pos];
+			
+			switch (dir)
+			{
+			case DOWN:
+				y++;
+				cell(x, y).parentDir = UP;
+				break;
+			case UP:
+				y--;
+				cell(x, y).parentDir = DOWN;
+				break;
+			case RIGHT:
+				x++;
+				cell(x, y).parentDir = LEFT;
+				break;
+			case LEFT:
+				x--;
+				cell(x, y).parentDir = RIGHT;
+				break;
+			}
+
+			iters++;
+
+			cout << "Iters: " << iters << endl;
+		}
+		else
+		{
+			cout << "Stuck in " << iters << " iters " << endl;
+		}
+		
 		//Drawing--------------
 		Clear(olc::BLACK);
 		//path
 		int dx = x;
 		int dy = y;
+		int pdx, pdy;
 		while (dx != ox || dy != oy)
 		{
-			switch (grid[IX(x, y)])
+			pdx = dx;
+			pdy = dy;
+
+			cout << dx << " " << dy << " " << cell(dx, dy).parentDir << endl;
+
+			switch (cell(dx, dy).parentDir)
 			{
-			case PARENT_BELOW: 
+			case DOWN:
 				dy++;
 				break;
-			case PARENT_ABOVE:
+			case UP:
 				dy--;
-			case PARENT_RIGHT:
+				break;
+			case RIGHT:
 				dx++;
 				break;
-			case PARENT_LEFT:
+			case LEFT:
 				dx--;
 				break;
 			}
 
-			DrawLine(dx, dy, x, y);
+			DrawLine(pdx*2+1, pdy*2+1, dx*2+1, dy*2+1);
+			
 		}
-		
+
 
 		return true;
 	}
 
-	vector<int> getSpaceToWalk(int x, int y)
+	Cell &cell(int i, int j)
 	{
-		vector<int> space;
-
-		if()
+		return grid[i + w * j];
 	}
 
-	int IX(int i, int j)
-	{
-		return i + ScreenWidth() * j;
-	}
-	
 };
 
 
 int main()
 {
 	Sketch sketch;
-	if (sketch.Construct(10, 10, 50, 50))
+	if (sketch.Construct(101, 101, 4, 4))
 		sketch.Start();
 
 	return 0;
