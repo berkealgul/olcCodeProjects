@@ -39,9 +39,9 @@ public:
 	int h = 50;
 	int x;
 	int y;
-	int iters = 0;
+	int len = 1;
 
-
+	bool backtrack = false;
 	vector<Cell> grid;
 
 
@@ -57,73 +57,12 @@ public:
 
 	bool OnUserUpdate(float dt) override
 	{
-		//get spaces to walk
-		if (x > 0)
+		//if path length is not max then apply step
+		if (len != w * h)
 		{
-			if (cell(x - 1, y).parentDir == UNVISITED)
-			{
-				cell(x, y).neighborDirs.push_back(LEFT);
-			}
-		}
-		if (x < w - 1)
-		{
-			if (cell(x + 1, y).parentDir == UNVISITED)
-			{
-				cell(x, y).neighborDirs.push_back(RIGHT);
-			}
-		}
-		if (y > 0)
-		{
-			if (cell(x, y - 1).parentDir == UNVISITED)
-			{
-				cell(x, y).neighborDirs.push_back(UP);
-			}
-		}
-		if (y < h - 1)
-		{
-			if (cell(x, y + 1).parentDir == UNVISITED)
-			{
-				cell(x, y).neighborDirs.push_back(DOWN);
-			}
+			step(); //logical step
 		}
 
-		
-
-		if (cell(x, y).neighborDirs.size() != 0)
-		{
-			srand(time(NULL));
-			int pos = rand() % cell(x, y).neighborDirs.size();
-			int dir = cell(x, y).neighborDirs[pos];
-			
-			switch (dir)
-			{
-			case DOWN:
-				y++;
-				cell(x, y).parentDir = UP;
-				break;
-			case UP:
-				y--;
-				cell(x, y).parentDir = DOWN;
-				break;
-			case RIGHT:
-				x++;
-				cell(x, y).parentDir = LEFT;
-				break;
-			case LEFT:
-				x--;
-				cell(x, y).parentDir = RIGHT;
-				break;
-			}
-
-			iters++;
-
-			cout << "Iters: " << iters << endl;
-		}
-		else
-		{
-			cout << "Stuck in " << iters << " iters " << endl;
-		}
-		
 		//Drawing--------------
 		Clear(olc::BLACK);
 		//path
@@ -157,8 +96,106 @@ public:
 			
 		}
 
-
 		return true;
+	}
+
+	void step()
+	{
+		// program crashes when backtracking to origin but bruh 
+		if (!backtrack)
+		{
+			cell(x, y).neighborDirs.clear();
+			//get spaces to walk
+			if (x > 0)
+			{
+				if (cell(x - 1, y).parentDir == UNVISITED)
+				{
+					cell(x, y).neighborDirs.push_back(LEFT);
+				}
+			}
+			if (x < w - 1)
+			{
+				if (cell(x + 1, y).parentDir == UNVISITED)
+				{
+					cell(x, y).neighborDirs.push_back(RIGHT);
+				}
+			}
+			if (y > 0)
+			{
+				if (cell(x, y - 1).parentDir == UNVISITED)
+				{
+					cell(x, y).neighborDirs.push_back(UP);
+				}
+			}
+			if (y < h - 1)
+			{
+				if (cell(x, y + 1).parentDir == UNVISITED)
+				{
+					cell(x, y).neighborDirs.push_back(DOWN);
+				}
+			}
+		}
+
+
+		if (cell(x, y).neighborDirs.size() != 0)
+		{
+			srand(time(NULL));
+			int pos = rand() % cell(x, y).neighborDirs.size();
+			int dir = cell(x, y).neighborDirs[pos];
+
+			switch (dir)
+			{
+			case DOWN:
+				y++;
+				cell(x, y).parentDir = UP;
+				break;
+			case UP:
+				y--;
+				cell(x, y).parentDir = DOWN;
+				break;
+			case RIGHT:
+				x++;
+				cell(x, y).parentDir = LEFT;
+				break;
+			case LEFT:
+				x--;
+				cell(x, y).parentDir = RIGHT;
+				break;
+			}
+
+			len++;
+			backtrack = false;
+
+			cout << "len: " << len << endl;
+
+		}
+		else
+		{
+			//go back
+			switch (cell(x, y).parentDir)
+			{
+			case DOWN:
+				y++;
+				cell(x, y).neighborDirs.erase(std::remove(cell(x, y).neighborDirs.begin(), cell(x, y).neighborDirs.end(), UP), cell(x, y).neighborDirs.end());
+				break;
+			case UP:
+				y--;
+				cell(x, y).neighborDirs.erase(std::remove(cell(x, y).neighborDirs.begin(), cell(x, y).neighborDirs.end(), DOWN), cell(x, y).neighborDirs.end());
+				break;
+			case RIGHT:
+				x++;
+				cell(x, y).neighborDirs.erase(std::remove(cell(x, y).neighborDirs.begin(), cell(x, y).neighborDirs.end(), LEFT), cell(x, y).neighborDirs.end());
+				break;
+			case LEFT:
+				x--;
+				cell(x, y).neighborDirs.erase(std::remove(cell(x, y).neighborDirs.begin(), cell(x, y).neighborDirs.end(), RIGHT), cell(x, y).neighborDirs.end());
+				break;
+			}
+
+			backtrack = true;
+			len--;
+			cout << "Stuck in " << len << " len " << endl;
+		}
 	}
 
 	Cell &cell(int i, int j)
