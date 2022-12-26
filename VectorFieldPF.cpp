@@ -36,6 +36,17 @@ public:
 	bool OnUserUpdate(float dt) override
 	{
 		Clear(olc::DARK_BLUE);
+
+		for (int j = 0; j < h; j++)
+		{
+			for (int i = 0; i < w; i++)
+			{
+				float c = heatmap[j][i];
+				auto p = olc::Pixel(c*10, c*10, c*10);
+				FillRect(i*cell_w, j*cell_w, cell_w, cell_w, p);
+			}
+		}
+
 		return true;
 	}
 
@@ -45,10 +56,13 @@ public:
 		{
 			for (int i = 0; i < w; i++)
 			{
-				
+				heatmap[j][i] = abs(i - target_i) + abs(j - target_j);
 			}
 		}
 	}
+
+
+
 };
 
 
