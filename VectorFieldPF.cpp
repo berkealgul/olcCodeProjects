@@ -37,12 +37,17 @@ public:
 	{
 		Clear(olc::DARK_BLUE);
 
+		target_i = GetMouseX() / cell_w;
+		target_j = GetMouseY() / cell_w;
+
+		CalculateHeatMap();
+
 		for (int j = 0; j < h; j++)
 		{
 			for (int i = 0; i < w; i++)
 			{
 				float c = heatmap[j][i];
-				auto p = olc::Pixel(c*10, c*10, c*10);
+				auto p = olc::Pixel(c*3, c*3, c*3);
 				FillRect(i*cell_w, j*cell_w, cell_w, cell_w, p);
 			}
 		}
