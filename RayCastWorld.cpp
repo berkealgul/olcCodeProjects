@@ -1,3 +1,4 @@
+#define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 #include <iostream>
 #include <vector>  
@@ -5,7 +6,7 @@
 using namespace olc;
 
 /*
-* Berke Algül 13.03.2023
+* Berke AlgÃ¼l 13.03.2023
 * 
 * Controls:
 *  W-S : move forward-nackward
@@ -288,3 +289,13 @@ public:
 		return result;
 	}
 };
+
+
+int main()
+{
+	RayCastWorld world;
+	if (world.Construct(1080, 720, 1, 1))
+		world.Start();
+
+	return 0;
+}
