@@ -1,10 +1,12 @@
+#define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
+#include <iostream>
 #include <vector>  
 
 using namespace olc;
 
 
-class MapEditor : public olc::PixelGameEngine
+class DDA_Demo : public olc::PixelGameEngine
 {
 public:
 	const int w = 20;
@@ -190,3 +192,13 @@ public:
 	}
 
 };
+
+
+int main()
+{
+	DDA_Demo demo;
+	if (demo.Construct(201, 201, 4, 4))
+		demo.Start();
+
+	return 0;
+}
