@@ -180,7 +180,7 @@ public:
 				break;
 			}
 
-			if (field[(int)MapCheck.x][(int)MapCheck.y] != 0)
+			if (field[MapCheck.x][MapCheck.y] != 0)
 			{
 				hit = true;
 			}
